@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>บันทึกยอดเงินกู้</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            box-sizing: border-box;
+        }
+        .fade-in {
+            animation: fadeIn 0.3s ease-in;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-blue-50 to-indigo-100 min-h-screen font-sans">
+    <div class="container mx-auto px-4 py-6 max-w-md">
+        <!-- Header -->
+        <div class="text-center mb-6">
+            <h1 class="text-2xl font-bold text-gray-800 mb-2">💰 บันทึกยอดเงินกู้</h1>
+            <p class="text-gray-600 text-sm">จัดการข้อมูลเงินกู้ 3 บัญชี</p>
+        </div>
+
+        <!-- Account Tabs -->
+        <div class="flex bg-white rounded-xl p-1 mb-6 shadow-sm">
+            <button onclick="switchAccount(1)" id="tab1" class="flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 bg-blue-500 text-white">
+                บัญชี 1
+            </button>
+            <button onclick="switchAccount(2)" id="tab2" class="flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:text-blue-500">
+                บัญชี 2
+            </button>
+            <button onclick="switchAccount(3)" id="tab3" class="flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:text-blue-500">
+                บัญชี 3
+            </button>
+        </div>
+
+        <!-- Add Record Form -->
+        <div class="bg-white rounded-xl p-5 mb-6 shadow-sm">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">📝 เพิ่มข้อมูลใหม่</h2>
+            <form onsubmit="addRecord(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">วันที่บันทึก</label>
+                    <input type="date" id="recordDate" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ยอดเงินกู้คงเหลือ (บาท)</label>
+                    <input type="number" id="remainingAmount" placeholder="0" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">ดอกเบี้ยเงินกู้ (%)</label>
+                    <input type="number" step="0.01" id="interestRate" placeholder="0.00" required class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-medium py-3 px-4 rounded-lg transition-colors duration-200">
+                    ✅ บันทึกข้อมูล
+                </button>
+            </form>
+        </div>
+
+        <!-- Records List -->
+        <div class="bg-white rounded-xl p-5 shadow-sm">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-lg font-semibold text-gray-800">📊 ประวัติการบันทึก</h2>
+                <span class="text-sm text-gray-500 font-medium">ทั้ง 3 บัญชี</span>
+            </div>
+            <div id="recordsList" class="space-y-3">
+                <div class="text-center text-gray-500 py-8">
+                    <div class="text-4xl mb-2">📋</div>
+                    <p>ยังไม่มีข้อมูลการบันทึก</p>
+                    <p class="text-sm">เพิ่มข้อมูลแรกของคุณเลย!</p>
+                </div>
+            </div>
+        </div>
+
+
+    </div>
+
+    <script>
+        let currentAccount = 1;
+        let accountData = {
+            1: [],
+            2: [],
+            3: []
+        };
+
+        // Load data from localStorage
+        function loadData() {
+            const saved = localStorage.getItem('loanRecords');
+            if (saved) {
+                accountData = JSON.parse(saved);
+            }
+        }
+
+        // Save data to localStorage
+        function saveData() {
+            localStorage.setItem('loanRecords', JSON.stringify(accountData));
+        }
+
+        // Switch account
+        function switchAccount(accountNum) {
+            currentAccount = accountNum;
+            
+            // Update tab styles
+            document.querySelectorAll('[id^="tab"]').forEach(tab => {
+                tab.className = 'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 text-gray-600 hover:text-blue-500';
+            });
+            document.getElementById(`tab${accountNum}`).className = 'flex-1 py-2 px-3 rounded-lg text-sm font-medium transition-all duration-200 bg-blue-500 text-white';
+            
+            // Update account label
+            document.getElementById('accountLabel').textContent = `บัญชี ${accountNum}`;
+            
+            // Refresh records display
+            displayRecords();
+        }
+
+        // Add new record
+        function addRecord(event) {
+            event.preventDefault();
+            
+            const date = document.getElementById('recordDate').value;
+            const amount = parseFloat(document.getElementById('remainingAmount').value);
+            const interest = parseFloat(document.getElementById('interestRate').value);
+            
+            const record = {
+                id: Date.now(),
+                date: date,
+                amount: amount,
+                interest: interest
+            };
+            
+            accountData[currentAccount].push(record);
+            accountData[currentAccount].sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            saveData();
+            displayRecords();
+            
+            // Clear form and reset date to today
+            setTodayDate();
+            document.getElementById('remainingAmount').value = '';
+            document.getElementById('interestRate').value = '';
+            
+            // Show success feedback
+            showToast('✅ บันทึกข้อมูลเรียบร้อย!');
+        }
+
+        // Display records
+        function displayRecords() {
+            // Combine all records from all accounts
+            const allRecords = [];
+            for (let account = 1; account <= 3; account++) {
+                accountData[account].forEach(record => {
+                    allRecords.push({
+                        ...record,
+                        accountNumber: account
+                    });
+                });
+            }
+            
+            // Sort by date (newest first)
+            allRecords.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            const recordsList = document.getElementById('recordsList');
+            
+            if (allRecords.length === 0) {
+                recordsList.innerHTML = `
+                    <div class="text-center text-gray-500 py-8">
+                        <div class="text-4xl mb-2">📋</div>
+                        <p>ยังไม่มีข้อมูลการบันทึก</p>
+                        <p class="text-sm">เพิ่มข้อมูลแรกของคุณเลย!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Display records
+            recordsList.innerHTML = allRecords.map(record => `
+                <div class="border border-gray-200 rounded-lg p-4 fade-in hover:shadow-md transition-shadow duration-200">
+                    <div class="flex justify-between items-start mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs bg-blue-100 text-blue-600 px-2 py-1 rounded-full font-medium">บัญชี ${record.accountNumber}</span>
+                            <div class="text-sm text-gray-600">${formatDate(record.date)}</div>
+                        </div>
+                        <button onclick="deleteRecord(${record.id}, ${record.accountNumber})" class="text-red-500 hover:text-red-700 text-sm">🗑️</button>
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-xs text-gray-500">ยอดคงเหลือ</p>
+                            <p class="font-semibold text-gray-800">${record.amount.toLocaleString()} บาท</p>
+                        </div>
+                        <div>
+                            <p class="text-xs text-gray-500">ดอกเบี้ย</p>
+                            <p class="font-semibold text-blue-600">${record.interest}%</p>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Delete record
+        function deleteRecord(id, accountNumber) {
+            if (confirm('ต้องการลบข้อมูลนี้หรือไม่?')) {
+                accountData[accountNumber] = accountData[accountNumber].filter(record => record.id !== id);
+                saveData();
+                displayRecords();
+                showToast('🗑️ ลบข้อมูลเรียบร้อย');
+            }
+        }
+
+        // Format date
+        function formatDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleDateString('th-TH', {
+                year: 'numeric',
+                month: 'short',
+                day: 'numeric'
+            });
+        }
+
+        // Show toast notification
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 left-1/2 transform -translate-x-1/2 bg-gray-800 text-white px-4 py-2 rounded-lg shadow-lg z-50 fade-in';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Set today's date as default
+        function setTodayDate() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('recordDate').value = `${year}-${month}-${day}`;
+        }
+        
+        setTodayDate();
+
+        // Initialize app
+        loadData();
+        displayRecords();
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'985a40e261587dc0',t:'MTc1ODk2ODI2OS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
