@@ -147,6 +147,9 @@
             saveData();
             displayRecords();
             
+            // Send to Google Sheets
+            sendToGoogleSheets(date, currentAccount, amount, interest);
+            
             // Clear form and reset date to today
             setTodayDate();
             document.getElementById('remainingAmount').value = '';
@@ -160,6 +163,35 @@
             
             // Show success feedback
             showToast('✅ บันทึกข้อมูลเรียบร้อย!');
+        }
+
+        // Send data to Google Sheets
+        function sendToGoogleSheets(date, account, loanAmount, interestRate) {
+            const scriptUrl = 'https://script.google.com/macros/s/AKfycbxYA3_gGzvzCaDFTjdSsBLKZJbUtFWjys-ErrVt9I7oVkQZCYgcJ1aYaiy-eVC1sYHI/exec';
+            
+            const data = {
+                date: date,
+                account: 'Account ' + account,
+                loanAmount: loanAmount,
+                interestRate: interestRate
+            };
+            
+            fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(data)
+            })
+            .then(() => {
+                console.log('Data sent to Google Sheets successfully');
+                showToast('📊 ส่งข้อมูลไป Google Sheets แล้ว!');
+            })
+            .catch((error) => {
+                console.error('Error sending to Google Sheets:', error);
+                showToast('⚠️ ไม่สามารถส่งข้อมูลไป Google Sheets ได้');
+            });
         }
 
         // Display records
@@ -265,5 +297,5 @@
         // Set initial interest rate for account 1
         document.getElementById('interestRate').value = 5.275;
     </script>
-<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'986035a8533e1d2f',t:'MTc1OTAzMDcyNC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'986070d402aa7994',t:'MTc1OTAzMzE0Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
 </html>
